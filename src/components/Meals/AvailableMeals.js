@@ -1,44 +1,60 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 import classes from './AvailableMeals.module.css'
 import Card from '../UI/Card'
 import MealItem from './MealItem/MealItem'
 
-const DUMMY_MEALS = [
-    {
-        id: 'm1',
-        name: 'Sushi',
-        description: 'Finest fish and veggies',
-        price: 22.99
-    },
-    {
-        id: 'm2',
-        name: 'Schnitzel',
-        description: 'A german specialty!',
-        price: 16.5
-    },
-    {
-        id: 'm3',
-        name: 'Barbecue Burger',
-        description: 'American, raw, meaty',
-        price: 12.99
-    },
-    {
-        id: 'm4',
-        name: 'Green Bowl',
-        description: 'Healthy...and green...',
-        price: 18.99
-    }
-]
-
 const AvailableMeals = () => {
-    const meals = DUMMY_MEALS.map((meal) => {
+    const [meals, setMeals] = useState([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState(null)
+
+    useEffect(() => {
+        const fetchMeals = async () => {
+            try {
+                const response = await fetch(
+                    'https://react-http-da004-default-rtdb.asia-southeast1.firebasedatabase.app/meals.jon'
+                )
+
+                if (!response.ok) {
+                    throw new Error('Error fetching meals')
+                }
+                const data = await response.json()
+
+                const modifiesMeals = []
+                for (const key in data) {
+                    modifiesMeals.push({
+                        ...data[key],
+                        id: key
+                    })
+                }
+
+                setMeals(modifiesMeals)
+                setIsLoading(false)
+            } catch (e) {
+                setIsLoading(false)
+                setError(e.message)
+            }
+        }
+
+        fetchMeals()
+    })
+
+    if (isLoading) {
+        return <p className={classes.isLoading}>Loading...</p>
+    }
+
+    if (error) {
+        return <p className={classes.isError}>{error}</p>
+    }
+
+    const mealsList = meals.map((meal) => {
         return <MealItem key={meal.id} {...meal} />
     })
     return (
         <section className={classes.meals}>
             <Card>
-                <ul>{meals}</ul>
+                <ul>{mealsList}</ul>
             </Card>
         </section>
     )

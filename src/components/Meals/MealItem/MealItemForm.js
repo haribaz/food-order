@@ -10,7 +10,6 @@ const MealItemForm = (props) => {
         event.preventDefault()
         const amountString = inputAmountRef.current.value
         const amountNumber = +amountString
-        console.log(amountNumber)
 
         if (amountString.trim().length === 0 || amountNumber <= 0 || amountNumber > 5) {
             setIsAmountValid(false)
