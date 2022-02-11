@@ -3,10 +3,12 @@ import Modal from '../UI/Modal'
 import CartContext from '../store/cart-context'
 import CartItem from './CartItem'
 import Checkout from './Checkout'
-import { useContext, useState } from 'react'
+import React, { useContext, useState } from 'react'
 
 const Cart = (props) => {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [submitted, setSubmitted] = useState(false)
     const ctx = useContext(CartContext)
     const hasItems = ctx.items.length > 0
 
@@ -42,8 +44,9 @@ const Cart = (props) => {
         setIsConfirmOpen(true)
     }
 
-    const submitCartHandler = (userData) => {
-        fetch(
+    const submitCartHandler = async (userData) => {
+        setIsSubmitting(true)
+        await fetch(
             'https://react-http-da004-default-rtdb.asia-southeast1.firebasedatabase.app/orders.json',
             {
                 method: 'POST',
@@ -53,6 +56,9 @@ const Cart = (props) => {
                 })
             }
         )
+        setIsSubmitting(false)
+        setSubmitted(true)
+        ctx.clearCart()
     }
 
     const modalBtnGroup = (
@@ -68,8 +74,8 @@ const Cart = (props) => {
         </div>
     )
 
-    return (
-        <Modal onClick={props.onClose}>
+    const modalContent = (
+        <React.Fragment>
             {cartItems}
             <div className={classes.total}>
                 <span>Total Amount</span>
@@ -77,6 +83,14 @@ const Cart = (props) => {
             </div>
             {isConfirmOpen && <Checkout onConfirm={submitCartHandler} onCancel={props.onClose} />}
             {!isConfirmOpen && modalBtnGroup}
+        </React.Fragment>
+    )
+
+    return (
+        <Modal onClick={props.onClose}>
+            {isSubmitting && <p>Sending yout order...</p>}
+            {submitted && <p>Your order has been submitted!</p>}
+            {!isSubmitting && !submitted && modalContent}
         </Modal>
     )
 }
